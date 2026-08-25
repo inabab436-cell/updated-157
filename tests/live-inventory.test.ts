@@ -84,3 +84,23 @@ describe("unresolvable references never mean unavailable", () => {
     expect(res.rule).toContain("INTERNAL DATA");
   });
 });
+
+describe("tolerant product wording", () => {
+  it("understands a misspelled/dialect word (هادي → هودي)", () => {
+    const r = buildLiveInventoryResult(products, { product_name: "هادي" });
+    expect(r.resolved).toBe(true);
+    expect(r.matched).toBe(1);
+    expect(r.products[0]!.product_id).toBe("p1");
+  });
+
+  it("understands a typo in a latin/arabic word (تيشيرت → تيشرت)", () => {
+    const r = buildLiveInventoryResult(products, { product_name: "تيشيرت" });
+    expect(r.products[0]!.product_id).toBe("p2");
+  });
+
+  it("still degrades to the full catalogue for a totally unknown word", () => {
+    const r = buildLiveInventoryResult(products, { product_name: "بنطلون جينز" });
+    expect(r.resolved).toBe(false);
+    expect(r.matched).toBe(2);
+  });
+});
